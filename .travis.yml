@@ -1,0 +1,23 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t nsahukar/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run nsahukar/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t nsahukar/multi-client ./client
+  - docker build -t nsahukar/multi-nginx ./nginx
+  - docker build -t nsahukar/multi-server ./server
+  - docker build -t nsahukar/multi-worker ./worker
+  # Log in to docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # push these images to docker hub
+  - docker push nsahukar/multi-client
+  - docker push nsahukar/multi-nginx
+  - docker push nsahukar/multi-server
+  - docker push nsahukar/multi-worker
+
